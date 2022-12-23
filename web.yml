@@ -1,0 +1,53 @@
+- hosts: all
+  vars:
+  - repo:
+      vm1: 
+      - epel-release
+      vm2: 
+      - apt
+  - packages:
+      vm1:
+      - httpd
+      - unzip
+      vm2:
+      - apache2
+      - unzip
+  - services:
+      vm1: httpd
+      vm2: apache2
+
+  tasks:
+  - name: Install repo
+    package:
+      name: "{{ repo[inventory_hostname] }}"
+
+  - name: Install Apache and unzip
+    package:
+      name: "{{ packages[inventory_hostname] }}"
+      state: latest
+
+  - name: Start Apache
+    systemd:
+      name: "{{ services[inventory_hostname] }}"
+      state: started
+      enabled: yes
+
+  - name: Unarchive the file to be downloaded and save in /tmp
+    unarchive:
+      src: https://www.free-css.com/assets/files/free-css-templates/download/page2/presentable.zip
+      dest: /tmp/
+      remote_src: yes
+
+  - name: copy index file to Apache directores
+    copy:
+      src: /tmp/presentable/
+      dest: /var/www/html/
+      remote_src: yes
+
+  - name: Restart Apache service
+    service:
+      name: "{{ services[inventory_hostname]}}"
+      state: restarted
+
+
+  
